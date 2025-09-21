@@ -1,0 +1,31 @@
+export const PROGRAM_NAME = "DebridgeProgram";
+export const SETTINGS_PROGRAM_NAME = "DebridgeSettingsProgram";
+// ********** Events **********
+export const STATE_INITIALIZED_EVENT = "StateInitialized";
+export const STATE_UPDATED_EVENT = "StateUpdated";
+export const LOG_EVENT = "Log";
+export const ORACLE_ADDED_EVENT = "OracleAdded";
+export const ORACLE_REMOVED_EVENT = "OracleRemoved";
+export const MINT_BRIDGE_CREATED_EVENT = "MintBridgeCreated";
+export const SEND_BRIDGE_CREATED_EVENT = "SendBridgeCreated";
+export const BRIDGED_EVENT = "Bridged";
+export const TRANSFERRED_EVENT = "Transferred";
+export const BRIDGE_MAX_AMOUNT_SETTED_EVENT = "BridgeMaxAmountSetted";
+export const BRIDGE_MIN_RESERVED_BPS_SETTED_EVENT = "BridgeMinReservedBpsSetted";
+export const BRIDGE_WORK_TOGGLED_EVENT = "BridgeWorkToggled";
+export const SUPPORT_CHAIN_INFO_INITIALIZED_EVENT = "SupportChainInfoInitialized";
+export const BRIDGE_FEE_INFO_INITIALIZED_EVENT = "BridgeFeeInfoInitialized";
+export const DISCOUNT_INFO_INITIALIZED_EVENT = "DiscountInitialized";
+// ********** Other **********
+export const ORACLE_ADDRESS_LENGTH = 20;
+export const ORACLES_MAX_SIZE = 20;
+export const REQUIRED_ORACLES_MAX_SIZE = 10;
+export const BRIDGE_WORKING = 0;
+export const BRIDGE_PAUSED = 1;
+export const UNWRAP_ETH = 1;
+export const REVERT_IF_EXTERNAL_FAIL = 2;
+export const PROXY_WITH_SENDER = 4;
+export const SEND_HASHED_DATA = 8;
+export const SEND_TO_ATA = 2 ** 31;
+export const EXT_CALL_STORAGE_OFFSET = 8;
+//# sourceMappingURL=constants.js.map

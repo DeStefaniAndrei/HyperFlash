@@ -1,0 +1,39 @@
+{
+  "name": "hyperflash",
+  "version": "1.0.0",
+  "description": "Cross-Chain HFT Infrastructure",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy:hyperliquid": "hardhat run scripts/deploy.js --network hyperLiquidTestnet",
+    "backend": "node backend/server.js",
+    "demo": "node demo/cli_demo.js",
+    "test": "hardhat test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeStefaniAndrei/HyperFlash.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DeStefaniAndrei/HyperFlash/issues"
+  },
+  "homepage": "https://github.com/DeStefaniAndrei/HyperFlash#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.1.0",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "ethers": "^6.15.0",
+    "hardhat": "^2.26.3"
+  },
+  "type": "module",
+  "dependencies": {
+    "@debridge-finance/dln-client": "^17.6.2",
+    "axios": "^1.12.2",
+    "chalk": "^5.6.2",
+    "express": "^5.1.0",
+    "ora": "^9.0.0",
+    "prompts": "^2.4.2"
+  }
+}
