@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(npx hardhat:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run compile:*)",
+      "Bash(npm run deploy:hyperliquid:*)",
+      "Bash(node:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

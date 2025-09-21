@@ -296,3 +296,54 @@ HyperFlash/
 ├── sdk/                # Python SDK using HyperLiquid SDK
 └── demo/               # CLI demo showing speed advantage
 ```
+
+## POST-MVP REQUIREMENTS
+
+### 1. Shared EOA Private Key Management (CRITICAL)
+**Current MVP**: Hardcoded private key in backend for maximum speed (~0ms latency)
+**Production Requirements**: Implement secure key management
+
+#### Recommended Production Approaches (in order of speed):
+1. **Secure Enclave (Intel SGX/ARM TrustZone)** - FASTEST <1ms
+   - Keys decrypted once at startup
+   - Held in protected memory
+   - Signing at memory speed
+
+2. **Local HSM (Hardware Security Module)** - FAST 1-5ms
+   - Dedicated hardware for key storage
+   - Local access, no network latency
+
+3. **AWS KMS / Cloud HSM** - MODERATE 20-50ms
+   - Cloud-based key management
+   - Good for disaster recovery
+
+4. **Multi-sig Wallet** - SLOWEST 1-3s
+   - On-chain signature collection
+   - Not suitable for HFT
+
+#### Implementation Plan:
+```javascript
+// Production architecture
+class SecureEOAManager {
+    constructor() {
+        // Primary: Secure Enclave
+        this.primarySigner = new SecureEnclave();
+
+        // Fallback: Local HSM
+        this.fallbackSigner = new LocalHSM();
+
+        // Emergency: Cloud KMS
+        this.emergencySigner = new CloudKMS();
+    }
+}
+```
+
+### 2. Additional Post-MVP Features
+- Advanced rate limiting per user
+- Multi-validator staking support
+- Partial slashing based on severity
+- Automated recovery mechanisms
+- Decentralized guardian system
+- Insurance fund from slashing penalties
+- Reputation system for traders
+- Cross-chain position netting

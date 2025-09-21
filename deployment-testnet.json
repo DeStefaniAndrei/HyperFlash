@@ -1,0 +1,11 @@
+{
+  "factoryAddress": "0x2837933E77C013E7b4a5362f8862E02E06dEd44a",
+  "contractType": "FactoryOptimized",
+  "network": "hyperliquid-testnet",
+  "chainId": 998,
+  "deployer": "0xF5AD9A14152ee5c12d17d9C1e99fe8193F27Eb8F",
+  "deployedAt": "2025-09-21T20:43:28.871Z",
+  "backendAddress": "0xF5AD9A14152ee5c12d17d9C1e99fe8193F27Eb8F",
+  "gasUsed": "0.000989",
+  "remainingBalance": "0.089010703"
+}

@@ -75,6 +75,43 @@
         "ICoreWriter",
         "UserStaking"
       ]
+    },
+    "C:\\Users\\deste\\IdeaProjects\\HyperFlash\\contracts\\FactoryOptimized.sol": {
+      "lastModificationDate": 1758487361826,
+      "contentHash": "4a22797b6afa86a12f2b4fae7cd794cb",
+      "sourceName": "contracts/FactoryOptimized.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "FactoryOptimized",
+        "MinimalStaking"
+      ]
     }
   }
 }
