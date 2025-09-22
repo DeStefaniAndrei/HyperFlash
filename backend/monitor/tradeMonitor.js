@@ -11,25 +11,26 @@ const CONFIG = {
     // Backend service wallet (from environment)
     BACKEND_PRIVATE_KEY: process.env.MASTER_PRIVATE_KEY || "3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0",
 
-    // RPC endpoints (from environment)
-    HYPERLIQUID_RPC: process.env.HYPERLIQUID_NETWORK === 'mainnet'
-        ? process.env.HYPERLIQUID_RPC
-        : process.env.HYPERLIQUID_TESTNET_RPC || "http://127.0.0.1:8545",
-    BASE_RPC: process.env.BASE_RPC || "http://127.0.0.1:8545",
+    // RPC endpoints - ALWAYS use mainnet for deployed contracts
+    HYPERLIQUID_RPC: "https://rpc.hyperliquid.xyz/evm",  // Using mainnet directly
+    BASE_RPC: process.env.BASE_RPC || "https://base.llamarpc.com",
 
     // Monitoring intervals
     POLL_INTERVAL: 2000,  // 2 seconds
     BRIDGE_TIMEOUT: 60000  // 60 seconds
 };
 
-// Factory ABI (full interaction)
+// Factory ABI (FactoryOptimized contract)
 const FACTORY_ABI = [
     "function getUserStakingContract(address user) view returns (address)",
     "function hasStakingContract(address user) view returns (bool)",
-    "function backend() view returns (address)",
+    "function backendAddress() view returns (address)",  // Public variable generates this getter
+    "function backend() view returns (address)",  // Explicit getter method
     "function sharedEOA() view returns (address)",
     "function deployedContracts(uint256 index) view returns (address)",
-    "function getTotalContracts() view returns (uint256)"
+    "function getTotalContracts() view returns (uint256)",
+    "function deployStakingContract() external returns (address)",
+    "event StakingContractDeployed(address indexed user, address stakingContract)"
 ];
 
 // UserStaking ABI (full interaction)
@@ -155,7 +156,11 @@ class TradeMonitor {
             // Check if user has staking contract
             const hasContract = await this.factory.hasStakingContract(userAddress);
             if (!hasContract) {
-                throw new Error("User has no staking contract");
+                // Deploy a staking contract for the user first
+                console.log("User has no staking contract, deploying one...");
+                const deployTx = await this.factory.deployStakingContract({ from: userAddress });
+                await deployTx.wait();
+                console.log("Staking contract deployed");
             }
 
             // Get user's staking contract
@@ -169,7 +174,7 @@ class TradeMonitor {
                 this.signer
             );
 
-            // Check REAL staking status
+            // Check staking status
             const [stakedAmount, isActive] = await stakingContract.getStatus();
             console.log(`Staked amount: ${ethers.formatEther(stakedAmount)} ETH`);
             console.log(`Active: ${isActive}`);

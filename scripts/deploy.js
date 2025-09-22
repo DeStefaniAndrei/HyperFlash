@@ -14,20 +14,20 @@ async function main() {
 
     // Hardcoded addresses for MVP
     // Backend service address (will run the monitoring service)
-    const backendAddress = "0xF5AD9A14152ee5c12d17d9C1e99fe8193F27Eb8F";  // Using test wallet as backend for now
+    const backendAddress = "0x9F5ADC9EC328a249ebde3d46CB00c48C3Ba8e8Cf";  // Using deployer wallet as backend
 
     // Shared EOA that will execute trades
-    // For MVP, we'll manually fund this address on HyperLiquid testnet
-    const sharedEOA = "0x1234567890123456789012345678901234567890";  // Placeholder - replace with actual funded EOA
+    // For MVP, using same wallet for everything
+    const sharedEOA = "0x9F5ADC9EC328a249ebde3d46CB00c48C3Ba8e8Cf";  // Same as deployer for MVP
 
     console.log("\nConfiguration:");
     console.log("- Backend Address:", backendAddress);
     console.log("- Shared EOA:", sharedEOA);
 
-    // Deploy Factory contract
-    console.log("\nDeploying Factory contract...");
-    const Factory = await ethers.getContractFactory("Factory");
-    const factory = await Factory.deploy(backendAddress, sharedEOA);
+    // Deploy Optimized Factory contract (smaller gas usage)
+    console.log("\nDeploying FactoryOptimized contract...");
+    const Factory = await ethers.getContractFactory("FactoryOptimized");
+    const factory = await Factory.deploy(backendAddress);
 
     // Wait for deployment
     await factory.waitForDeployment();
@@ -35,13 +35,7 @@ async function main() {
 
     console.log("Factory deployed to:", factoryAddress);
 
-    // Verify deployment
-    const deployedBackend = await factory.backend();
-    const deployedSharedEOA = await factory.sharedEOA();
-
-    console.log("\nVerification:");
-    console.log("- Backend address set:", deployedBackend);
-    console.log("- Shared EOA set:", deployedSharedEOA);
+    // Skip verification for FactoryOptimized (no public getters)
 
     console.log("\n✅ Deployment complete!");
     console.log("\nNext steps:");

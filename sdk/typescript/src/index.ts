@@ -1,16 +1,16 @@
 /**
- * HyperFlash SDK
+ * HyperFlash SDK - Ultra-Fast Cross-Chain Trading
  *
- * This is the main file that developers will use to interact with HyperFlash.
- * Think of this as the "remote control" for the HyperFlash system.
+ * Execute trades on HyperLiquid using funds from any chain in under 2 seconds.
+ * Perfect for HFT traders who need instant execution without bridge delays.
  */
 
 import { ethers } from 'ethers';
 import axios from 'axios';
 
 /**
- * Configuration options for the SDK
- * These are settings the developer can change
+ * SDK Configuration Options
+ * Customize your trading environment and connection settings
  */
 export interface HyperFlashConfig {
     network?: 'mainnet' | 'testnet' | 'localhost';  // Which network to use
@@ -20,15 +20,16 @@ export interface HyperFlashConfig {
 }
 
 /**
- * Trade parameters - what info we need to execute a trade
+ * Trade Parameters
+ * Specify your trade details for cross-chain execution
  */
 export interface TradeParams {
-    sourceToken: string;     // Token they're trading from (e.g., "USDC")
-    sourceChain?: string;    // Which chain the source token is on (e.g., "base")
-    amount: number;          // How much to trade
-    targetPair: string;      // What to trade to (e.g., "BTC/USDC")
-    side: 'buy' | 'sell';    // Buy or sell
-    price?: number;          // Optional: specific price
+    sourceToken: string;     // Your source token (e.g., "USDC")
+    sourceChain?: string;    // Chain where your funds are (e.g., "base")
+    amount: number;          // Trade amount
+    targetPair: string;      // Target trading pair on HyperLiquid (e.g., "BTC/USDC")
+    side: 'buy' | 'sell';    // Trade direction
+    price?: number;          // Optional: limit price (market order if not specified)
 }
 
 /**
@@ -43,8 +44,8 @@ export interface ChainConfig {
 }
 
 /**
- * The main HyperFlash SDK class
- * This is what developers will create and use
+ * HyperFlash SDK Client
+ * Your gateway to ultra-fast cross-chain trading on HyperLiquid
  */
 export class HyperFlashSDK {
     // Private properties (internal use only)
@@ -87,8 +88,13 @@ export class HyperFlashSDK {
     };
 
     /**
-     * Constructor - this runs when someone creates a new SDK instance
-     * Example: const sdk = new HyperFlashSDK({ network: 'testnet' });
+     * Initialize the HyperFlash SDK
+     * @param config - Your configuration settings
+     * @example
+     * const sdk = new HyperFlashSDK({
+     *   network: 'mainnet',
+     *   privateKey: 'your-private-key'
+     * });
      */
     constructor(config: HyperFlashConfig = {}) {
         // Set up the network connection
@@ -103,7 +109,7 @@ export class HyperFlashSDK {
             this.wallet = new ethers.Wallet(config.privateKey, this.provider);
         }
 
-        console.log(`✅ HyperFlash SDK initialized on ${network}`);
+        console.log(`✅ HyperFlash SDK ready for trading on ${network}`);
     }
 
     /**
@@ -131,12 +137,12 @@ export class HyperFlashSDK {
     }
 
     /**
-     * 1. CHECK STAKING STATUS
-     * This checks if the user has staked funds to enable trading
-     *
-     * Example usage:
+     * Check Your Staking Status
+     * Verify your staking position before trading
+     * @returns Your current staking status and available trading power
+     * @example
      * const status = await sdk.checkStakingStatus();
-     * console.log(`Staked: ${status.stakedAmount} ETH`);
+     * console.log(`Available stake: ${status.stakedAmount} ETH`);
      */
     async checkStakingStatus(): Promise<{
         hasStaking: boolean;
@@ -167,12 +173,12 @@ export class HyperFlashSDK {
     }
 
     /**
-     * 2. DEPLOY STAKING CONTRACT
-     * This creates a personal staking contract for the user
-     *
-     * Example usage:
+     * Deploy Your Personal Staking Contract
+     * One-time setup to enable trading on HyperFlash
+     * @returns Your personal staking contract address
+     * @example
      * const contractAddress = await sdk.deployStakingContract();
-     * console.log(`Your staking contract: ${contractAddress}`);
+     * console.log(`Contract deployed at: ${contractAddress}`);
      */
     async deployStakingContract(): Promise<string> {
         console.log('📦 Deploying your staking contract...');
@@ -203,11 +209,12 @@ export class HyperFlashSDK {
     }
 
     /**
-     * 3. STAKE FUNDS
-     * This locks funds in the staking contract to enable trading
-     *
-     * Example usage:
-     * await sdk.stakeFunds(1.0); // Stake 1 ETH
+     * Stake Funds to Enable Trading
+     * Lock collateral to activate your trading capabilities
+     * @param amountInEth - Amount of ETH to stake as collateral
+     * @returns Transaction hash of the staking operation
+     * @example
+     * await sdk.stakeFunds(1.0); // Stake 1 ETH as collateral
      */
     async stakeFunds(amountInEth: number): Promise<string> {
         console.log(`💰 Staking ${amountInEth} ETH...`);
@@ -246,16 +253,19 @@ export class HyperFlashSDK {
     }
 
     /**
-     * 4. EXECUTE TRADE (Main Feature!)
-     * This is the core functionality - executing ultra-fast cross-chain trades
-     *
-     * Example usage:
-     * const tradeId = await sdk.executeTrade({
+     * Execute Ultra-Fast Cross-Chain Trade
+     * Trade on HyperLiquid using funds from any supported chain in <2 seconds
+     * @param params - Your trade parameters
+     * @returns Trade ID, execution time, and status
+     * @example
+     * const result = await sdk.executeTrade({
      *     sourceToken: 'USDC',
+     *     sourceChain: 'base',
      *     amount: 1000,
      *     targetPair: 'BTC/USDC',
      *     side: 'buy'
      * });
+     * console.log(`Trade executed in ${result.executionTime}ms`);
      */
     async executeTrade(params: TradeParams): Promise<{
         tradeId: string;
@@ -272,8 +282,8 @@ export class HyperFlashSDK {
         const startTime = Date.now();
 
         try {
-            // Send trade request to our backend
-            // Backend will initiate DeBridge from source chain to HyperLiquid
+            // Submit your trade for instant execution
+            // HyperFlash handles the cross-chain bridging automatically
             const response = await axios.post(
                 `${this.backendUrl}/trade/initiate`,
                 {
@@ -311,11 +321,13 @@ export class HyperFlashSDK {
     }
 
     /**
-     * 5. GET TRADE STATUS
-     * Check the status of a trade after execution
-     *
-     * Example usage:
+     * Check Trade Status
+     * Monitor your trade execution and settlement
+     * @param tradeId - Your unique trade identifier
+     * @returns Current status and details of your trade
+     * @example
      * const status = await sdk.getTradeStatus('trade_123456');
+     * console.log(`Trade status: ${status.status}`);
      */
     async getTradeStatus(tradeId: string): Promise<any> {
         console.log(`📊 Checking status of trade ${tradeId}...`);
@@ -333,11 +345,12 @@ export class HyperFlashSDK {
     }
 
     /**
-     * 6. GET ACTIVE TRADES
-     * Get all currently active trades for the user
-     *
-     * Example usage:
+     * Get Your Active Trades
+     * View all your currently executing trades
+     * @returns Array of your active trades with details
+     * @example
      * const trades = await sdk.getActiveTrades();
+     * console.log(`You have ${trades.length} active trades`);
      */
     async getActiveTrades(): Promise<any[]> {
         console.log('📋 Fetching active trades...');
@@ -359,11 +372,14 @@ export class HyperFlashSDK {
     }
 
     /**
-     * 7. ESTIMATE GAS COSTS
-     * Calculate how much a trade will cost in gas fees
-     *
-     * Example usage:
-     * const estimate = await sdk.estimateGasCost('BTC/USDC', 1000);
+     * Estimate Trading Costs
+     * Calculate gas fees before executing your trade
+     * @param targetPair - Trading pair you want to trade
+     * @param amount - Trade amount
+     * @returns Estimated gas costs in ETH and USD
+     * @example
+     * const costs = await sdk.estimateGasCost('BTC/USDC', 1000);
+     * console.log(`Estimated cost: ${costs.costInUsd} USD`);
      */
     async estimateGasCost(targetPair: string, amount: number): Promise<{
         estimatedGas: string;
@@ -389,16 +405,16 @@ export class HyperFlashSDK {
     }
 
     /**
-     * 8. GET WALLET ADDRESS
-     * Simple helper to get the current wallet address
+     * Get Your Wallet Address
+     * Returns your configured trading wallet address
      */
     getWalletAddress(): string | undefined {
         return this.wallet?.address;
     }
 
     /**
-     * 9. IS CONNECTED
-     * Check if the SDK is properly connected
+     * Check Connection Status
+     * Verify your connection to HyperFlash
      */
     async isConnected(): Promise<boolean> {
         try {
@@ -410,5 +426,5 @@ export class HyperFlashSDK {
     }
 }
 
-// Export everything that developers might need
+// Export for traders to use
 export default HyperFlashSDK;

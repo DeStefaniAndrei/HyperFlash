@@ -1,4 +1,5 @@
-import "@nomicfoundation/hardhat-toolbox";
+// import "@nomicfoundation/hardhat-toolbox";
+import "@nomicfoundation/hardhat-ethers";
 
 /** @type import('hardhat/config').HardhatUserConfig */
 export default {
@@ -22,9 +23,9 @@ export default {
     hyperLiquidMainnet: {
       url: "https://rpc.hyperliquid.xyz/evm",
       chainId: 999,
-      accounts: ["3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0"], // REPLACE WITH YOUR DEPLOYER KEY
+      accounts: ["1c7273e8ab35b009e26b60cbeb13c845d228af204f917387b12ec6c20afa524c"], // Your deployer key
       gasPrice: 1000000000, // 1 gwei
-      gas: 30000000 // 30M gas for deployments (big blocks)
+      gas: 2000000 // 2M gas for small blocks
     }
   },
   paths: {

@@ -10,7 +10,10 @@
       "Bash(python:*)",
       "Bash(findstr:*)",
       "WebSearch",
-      "WebFetch(domain:hyperliquid.gitbook.io)"
+      "WebFetch(domain:hyperliquid.gitbook.io)",
+      "Bash(npx @layerzerolabs/hyperliquid-composer set-block:*)",
+      "Bash(awk:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

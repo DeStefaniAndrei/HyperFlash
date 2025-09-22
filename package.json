@@ -30,6 +30,7 @@
   "type": "module",
   "dependencies": {
     "@debridge-finance/dln-client": "^17.6.2",
+    "@layerzerolabs/hyperliquid-composer": "^1.0.2",
     "axios": "^1.12.2",
     "chalk": "^5.6.2",
     "dotenv": "^17.2.2",

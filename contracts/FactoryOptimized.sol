@@ -9,7 +9,9 @@ pragma solidity ^0.8.24;
 contract FactoryOptimized {
     // State variables
     address public backendAddress;
+    address public sharedEOA;
     mapping(address => address) public userStakingContracts;
+    address[] public deployedContracts;
 
     // Events
     event StakingContractDeployed(address indexed user, address stakingContract);
@@ -17,6 +19,7 @@ contract FactoryOptimized {
     constructor(address _backend) {
         require(_backend != address(0), "Invalid backend");
         backendAddress = _backend;
+        sharedEOA = _backend; // Same as backend for MVP
     }
 
     /**
@@ -28,6 +31,7 @@ contract FactoryOptimized {
         // Deploy minimal staking contract
         MinimalStaking staking = new MinimalStaking(msg.sender, backendAddress);
         userStakingContracts[msg.sender] = address(staking);
+        deployedContracts.push(address(staking));
 
         emit StakingContractDeployed(msg.sender, address(staking));
         return address(staking);
@@ -40,6 +44,15 @@ contract FactoryOptimized {
     function getUserStakingContract(address user) external view returns (address) {
         return userStakingContracts[user];
     }
+
+    // Getter methods for backend compatibility
+    function backend() external view returns (address) {
+        return backendAddress;
+    }
+
+    function getTotalContracts() external view returns (uint256) {
+        return deployedContracts.length;
+    }
 }
 
 /**
@@ -51,9 +64,13 @@ contract MinimalStaking {
     address public immutable backend;
     uint256 public stakedAmount;
     bool public isSlashed;
+    mapping(string => bool) public activeTrades;
 
     event Staked(uint256 amount);
     event Slashed(uint256 amount);
+    event TradeRegistered(string tradeId);
+    event TradeCompleted(string tradeId);
+    event FundsSlashed(string reason, uint256 amount);
 
     modifier onlyUser() {
         require(msg.sender == user, "Only user");
@@ -88,5 +105,32 @@ contract MinimalStaking {
 
     function getStatus() external view returns (uint256, bool) {
         return (stakedAmount, !isSlashed);
+    }
+
+    // Trade management functions
+    function registerTrade(string memory tradeId) external onlyBackend {
+        require(!isSlashed, "Slashed");
+        require(!activeTrades[tradeId], "Trade exists");
+        activeTrades[tradeId] = true;
+        emit TradeRegistered(tradeId);
+    }
+
+    function completeTrade(string memory tradeId) external onlyBackend {
+        require(activeTrades[tradeId], "Trade not found");
+        activeTrades[tradeId] = false;
+        emit TradeCompleted(tradeId);
+    }
+
+    function hasSufficientStake(uint256 amount) external view returns (bool) {
+        return stakedAmount >= amount && !isSlashed;
+    }
+
+    function slashWithReason(string memory reason) external onlyBackend {
+        require(stakedAmount > 0, "No stake");
+        isSlashed = true;
+        uint256 amount = stakedAmount;
+        stakedAmount = 0;
+        payable(backend).transfer(amount);
+        emit FundsSlashed(reason, amount);
     }
 }

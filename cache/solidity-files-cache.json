@@ -77,8 +77,8 @@
       ]
     },
     "C:\\Users\\deste\\IdeaProjects\\HyperFlash\\contracts\\FactoryOptimized.sol": {
-      "lastModificationDate": 1758487361826,
-      "contentHash": "4a22797b6afa86a12f2b4fae7cd794cb",
+      "lastModificationDate": 1758505463599,
+      "contentHash": "22ef29a8c6d2bd5d7583a91f65a42de5",
       "sourceName": "contracts/FactoryOptimized.sol",
       "solcConfig": {
         "version": "0.8.24",
