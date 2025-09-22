@@ -17,6 +17,14 @@ export default {
       accounts: ["3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0"], // Public test wallet
       gasPrice: 1000000000, // 1 gwei
       gas: 30000000 // 30M gas for deployments
+    },
+    // HyperLiquid mainnet configuration
+    hyperLiquidMainnet: {
+      url: "https://rpc.hyperliquid.xyz/evm",
+      chainId: 999,
+      accounts: ["3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0"], // REPLACE WITH YOUR DEPLOYER KEY
+      gasPrice: 1000000000, // 1 gwei
+      gas: 30000000 // 30M gas for deployments (big blocks)
     }
   },
   paths: {

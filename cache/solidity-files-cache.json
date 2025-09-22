@@ -112,6 +112,43 @@
         "FactoryOptimized",
         "MinimalStaking"
       ]
+    },
+    "C:\\Users\\deste\\IdeaProjects\\HyperFlash\\contracts\\BigBlockEnabler.sol": {
+      "lastModificationDate": 1758488489880,
+      "contentHash": "45b4af57e33f99de3fa4cdcc50f3ee02",
+      "sourceName": "contracts/BigBlockEnabler.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "BigBlockEnabler",
+        "ICoreWriter"
+      ]
     }
   }
 }

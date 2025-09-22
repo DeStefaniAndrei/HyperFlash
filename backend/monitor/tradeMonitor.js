@@ -1,14 +1,21 @@
 import { ethers } from "ethers";
 import DeBridgeService from "../debridge/bridge.js";
+import HyperLiquidTradeService from "../hyperliquid/tradeService.js";
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 // Configuration
 const CONFIG = {
-    // Backend service wallet
-    BACKEND_PRIVATE_KEY: "3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0",
+    // Backend service wallet (from environment)
+    BACKEND_PRIVATE_KEY: process.env.MASTER_PRIVATE_KEY || "3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0",
 
-    // RPC endpoints - using localhost for local testing
-    HYPERLIQUID_RPC: "http://127.0.0.1:8545",
-    BASE_RPC: "http://127.0.0.1:8545",
+    // RPC endpoints (from environment)
+    HYPERLIQUID_RPC: process.env.HYPERLIQUID_NETWORK === 'mainnet'
+        ? process.env.HYPERLIQUID_RPC
+        : process.env.HYPERLIQUID_TESTNET_RPC || "http://127.0.0.1:8545",
+    BASE_RPC: process.env.BASE_RPC || "http://127.0.0.1:8545",
 
     // Monitoring intervals
     POLL_INTERVAL: 2000,  // 2 seconds
@@ -57,6 +64,9 @@ class TradeMonitor {
         // Initialize DeBridge service
         this.debridge = new DeBridgeService(CONFIG.BACKEND_PRIVATE_KEY);
 
+        // Initialize HyperLiquid trade service
+        this.hyperLiquid = new HyperLiquidTradeService();
+
         // Track active trades with debridgeIds
         this.activeTrades = new Map();  // tradeId -> tradeData
     }
@@ -77,6 +87,13 @@ class TradeMonitor {
             console.log("Backend address:", backend);
             console.log("Shared EOA:", sharedEOA);
             console.log("Total deployed staking contracts:", totalContracts.toString());
+
+            // Initialize HyperLiquid trade service
+            const hlInitialized = await this.hyperLiquid.initialize();
+            if (!hlInitialized) {
+                console.warn("[WARNING] HyperLiquid trade service initialization failed");
+                console.warn("         Trades will not execute. Check Python SDK installation.");
+            }
 
             // Start REAL event monitoring
             this.startEventMonitoring();
@@ -203,7 +220,7 @@ class TradeMonitor {
     }
 
     /**
-     * Execute trade on HyperLiquid (REAL implementation placeholder)
+     * Execute trade on HyperLiquid using vault/subaccount model
      */
     async executeTrade(tradeId, tradingParams) {
         console.log(`[REAL] Executing trade ${tradeId} on HyperLiquid`);
@@ -215,17 +232,27 @@ class TradeMonitor {
         }
 
         try {
-            // TODO: Integrate with HyperLiquid Python SDK or API
-            // For now, mark as executed for flow testing
-            tradeData.tradeExecuted = true;
+            // Execute trade via HyperLiquid service (Python SDK)
+            const result = await this.hyperLiquid.executeTrade(tradeId, tradingParams);
 
-            console.log(`[REAL] Trade ${tradeId} execution initiated`);
-            console.log("Trade params:", tradingParams);
+            if (result.success) {
+                tradeData.tradeExecuted = true;
+                tradeData.orderId = result.orderId;
+                tradeData.executionTime = result.executionTime;
 
-            // Monitor for bridge completion
+                console.log(`[REAL] Trade ${tradeId} executed successfully`);
+                console.log(`      Order ID: ${result.orderId}`);
+                console.log(`      Execution time: ${result.executionTime}ms`);
+            } else {
+                console.error(`[REAL] Trade execution failed: ${result.error}`);
+                tradeData.tradeExecuted = false;
+                tradeData.error = result.error;
+            }
+
+            // Monitor for bridge completion regardless
             this.monitorBridgeForTrade(tradeId);
 
-            return { success: true, tradeId };
+            return result;
 
         } catch (error) {
             console.error("Trade execution failed:", error);

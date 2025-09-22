@@ -2,20 +2,26 @@ import express from "express";
 import { ethers } from "ethers";
 import TradeMonitor from "./monitor/tradeMonitor.js";
 import DeBridgeService from "./debridge/bridge.js";
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 // Configuration
 const CONFIG = {
-    PORT: 3000,
+    PORT: process.env.BACKEND_PORT || 3000,
     FACTORY_ADDRESS: process.env.FACTORY_ADDRESS || null,
 
-    // Backend service wallet
-    BACKEND_PRIVATE_KEY: "3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0",
+    // Backend service wallet (master account that signs)
+    BACKEND_PRIVATE_KEY: process.env.MASTER_PRIVATE_KEY || "3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0",
 
-    // Shared EOA that executes trades
-    // MVP ONLY: Hardcoded for maximum speed (~0ms latency)
-    // POST-MVP TODO: Implement secure key management (Secure Enclave/Local HSM)
-    SHARED_EOA_PRIVATE_KEY: "3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0",  // REPLACE with actual funded EOA key
-    SHARED_EOA_ADDRESS: "0xF5AD9A14152ee5c12d17d9C1e99fe8193F27Eb8F"  // Using test address for MVP
+    // Shared EOA that executes trades (vault/subaccount)
+    // MVP: Uses master key to sign on behalf of vault
+    // POST-MVP TODO: Implement secure key management (TEE/HSM)
+    SHARED_EOA_ADDRESS: process.env.SHARED_EOA_ADDRESS || "0xF5AD9A14152ee5c12d17d9C1e99fe8193F27Eb8F",
+
+    // Network configuration
+    NETWORK: process.env.HYPERLIQUID_NETWORK || 'testnet'
 };
 
 // Initialize Express app
@@ -181,6 +187,30 @@ async function monitorBridgeCompletion(tradeId, debridgeId) {
 }
 
 /**
+ * Get vault (shared EOA) balance on HyperLiquid
+ */
+app.get("/vault/balance", async (req, res) => {
+    try {
+        // Get balance from HyperLiquid trade service
+        const hyperLiquid = new (await import("./hyperliquid/tradeService.js")).default();
+        await hyperLiquid.initialize();
+        const balance = await hyperLiquid.getVaultBalance();
+
+        res.json({
+            success: true,
+            vault: CONFIG.SHARED_EOA_ADDRESS,
+            network: CONFIG.NETWORK,
+            ...balance
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+/**
  * Get all active trades (REAL)
  */
 app.get("/trades/active", (req, res) => {
@@ -281,9 +311,12 @@ async function startServer() {
 
         // Start Express server
         app.listen(CONFIG.PORT, () => {
-            console.log(`\n[REAL] Backend server running on port ${CONFIG.PORT}`);
-            console.log(`Factory address: ${factoryAddress}`);
-            console.log(`Shared EOA: ${CONFIG.SHARED_EOA_ADDRESS}`);
+            console.log(`\n[REAL] HyperFlash Backend Server`);
+            console.log(`================================`);
+            console.log(`Network: ${CONFIG.NETWORK}`);
+            console.log(`Port: ${CONFIG.PORT}`);
+            console.log(`Factory: ${factoryAddress}`);
+            console.log(`Shared EOA (Vault): ${CONFIG.SHARED_EOA_ADDRESS}`);
             console.log("\nEndpoints:");
             console.log("  GET  /health");
             console.log("  POST /trade/initiate");
@@ -294,7 +327,7 @@ async function startServer() {
             console.log("\nTest endpoints:");
             console.log("  POST /test/complete-bridge/:tradeId");
             console.log("  POST /test/slash/:tradeId");
-            console.log("\nMode: REAL (No mock code!)");
+            console.log("\nMode: REAL - HyperLiquid vault trading enabled");
         });
     } catch (error) {
         console.error("Failed to start server:", error);

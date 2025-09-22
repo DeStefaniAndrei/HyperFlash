@@ -30,7 +30,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### The Solution - Staking-Based Trust System
 **CORRECTED ARCHITECTURE**: Async bridging with immediate execution backed by staking:
 
-1. **User Staking Contract**: User deploys personal contract via factory that locks funds and delegates stake to HyperLiquid validator
+1. **User Staking Contract**: User deploys personal contract via factory that delegates stake to HyperLiquid validator
 2. **Stake Delegation**: Contract delegates stake to validator - this gives contract authority to slash on its own terms
 3. **SDK Trade Submission**: User submits trade via SDK (specifies source token, quantity, trade pair, requirements)
 4. **DeBridge Initialization**: SDK communicates with DeBridge to start bridging (2 seconds)
@@ -38,11 +38,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 6. **Bridge Completion**: Bridged funds arrive in shared EOA
 7. **Trade Settlement**: Each trade has unique ID - funds returned to user when trade ends
 
+### Staking Architecture - The Real Innovation
+**KEY INSIGHT**: HFT traders already have significant stake in DeFi protocols (HyperLiquid, Ethereum, etc.) for yields and validation. HyperFlash leverages this EXISTING stake as collateral instead of requiring new capital lock-up.
+
+Why the staking contract is necessary:
+- **Can't slash direct stakes**: Users staking directly on platforms can't be slashed by our protocol
+- **Intermediary with authority**: The staking contract acts as an intermediary that CAN be slashed
+- **Delegation = Slashing power**: By delegating through our contract, HyperFlash gains autonomous slashing authority
+- **Capital efficiency**: Same stake serves dual purpose - DeFi yields AND trading collateral
+
 ### Key Design Decisions
-- **Staking for slashing authority**: Smart contract can slash user's stake if malicious
+- **Leverages existing DeFi stakes**: No new capital lock-up required - uses traders' existing staked positions
+- **Staking contract for slashing authority**: Not for fund custody, but for punishment mechanism
 - **Shared EOA wallet**: Single pre-funded wallet executes all trades immediately
 - **DeBridge integration**: Handles actual cross-chain movement (2 seconds async)
-- **No value locking**: Different from previous design iterations
 - **Factory pattern**: Each user gets personal staking contract
 - **Unique trade IDs**: Links trades back to user wallets for settlement
 - **NO rate limiting, NO over-collateralization, NO simultaneous trade limits**
@@ -129,7 +138,7 @@ npx hardhat test
 
 ### Trading Execution Flow (MVP)
 1. User deploys staking contract via factory on HyperLiquid
-2. Contract locks user funds and delegates stake to validator
+2. Contract delegates user's stake to validator (gaining slashing authority)
 3. User submits trade through SDK with parameters:
    - Source token (e.g., USDC on Base)
    - Quantity
@@ -140,7 +149,7 @@ npx hardhat test
 6. DeBridge processes actual bridge (2 seconds in background)
 7. Bridged funds arrive in shared EOA
 8. Trade settlement returns funds to user (tracked by unique ID)
-9. If malicious behavior detected, staking contract slashes user's stake
+9. If malicious behavior detected (bridge fails after trade), staking contract slashes user's stake
 
 ## Resources
 - **HyperLiquid Docs**: Context/Hyperliquid and HyperEVM Complete Developer Guide.pdf
@@ -177,12 +186,46 @@ const message = new evm.Message({
 - 2/3 validator consensus requirement
 - Signatures stored on Arweave
 
+## HyperLiquid Trading Implementation
+
+### Vault/Subaccount Architecture
+**Key Concept**: The shared EOA acts as a "vault" or subaccount. Trades are signed by master account but executed on behalf of vault.
+
+#### Python SDK Implementation
+```python
+from hyperliquid.exchange import Exchange
+from hyperliquid.utils import constants
+
+# Master account signs, vault executes
+exchange = Exchange(
+    wallet=master_wallet_private_key,  # Signs transactions
+    base_url=constants.MAINNET_API_URL,
+    vault_address="0x..."  # Shared EOA address (vault)
+)
+
+# Place order on behalf of vault
+order_result = exchange.order(
+    coin="BTC",
+    is_buy=True,
+    sz=0.01,
+    limit_px=50000,
+    order_type={"limit": {"tif": "Gtc"}}
+)
+```
+
+#### Important Notes
+- **Nonce Management**: Each signer has separate nonce tracking
+- **Asset Indexing**: Spot assets use 10000 + index from spotMeta.universe
+- **Chain ID**: Use 0x66eee for user-signed actions (never Arbitrum's 42161)
+- **No Private Key for Vault**: Vault/subaccount doesn't have private key, only master signs
+
 ## IMPORTANT REMINDERS
 - Account must be activated on HyperCore with $1+ USDC before deployment
 - Always switch to big blocks for deployment, then back to small
 - Use precompiled contracts for reading HyperCore data
 - Gas fees are burned on HyperEVM (deflationary model)
 - Never attempt to bridge funds back - one-way flow only
+- Vault address parameter required for subaccount trading
 
 ## CONFIRMED IMPLEMENTATION DECISIONS
 
@@ -267,7 +310,7 @@ Private Key: 3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0
 - **Backend**: TypeScript (better compatibility)
 - **SDK**: Python (using HyperLiquid official SDK)
 - **Demo**: CLI (UI post-MVP)
-- **NO .env FILES** - Hardcode non-sensitive config
+- **Environment Variables**: Use .env files for private keys and sensitive config
 
 ### Demo Metrics
 - Show exact latency numbers
@@ -338,9 +381,82 @@ class SecureEOAManager {
 }
 ```
 
-### 2. Additional Post-MVP Features
+### 2. Decentralization Roadmap (Critical for Production)
+**Current MVP**: Centralized backend server - single point of failure, against DeFi principles
+**Goal**: Fully decentralized system maintaining <500ms execution speed
+
+#### Phase 1: TEE Network (6 months post-MVP)
+**Trusted Execution Environment Network** - Hardware-based decentralization:
+- Replace single backend with network of TEE nodes globally
+- Intel SGX/ARM TrustZone secure enclaves
+- Backend code runs inside secure hardware enclave
+- Private keys NEVER exposed, even to node operators
+- **Speed maintained**: <50ms execution
+- **Benefits**:
+  - Immediate decentralization
+  - Hardware-enforced security
+  - No single point of failure
+  - Censorship resistant
+
+Implementation:
+```javascript
+// Each TEE node runs this in secure enclave
+class TEENode {
+    constructor() {
+        this.enclave = new SecureEnclave();
+        this.sharedEOAKey = enclave.loadKey(); // Key never leaves enclave
+    }
+
+    executeTradeSecurely(tradeParams) {
+        // Execution inside hardware-protected memory
+        return enclave.sign(tradeParams);
+    }
+}
+```
+
+#### Phase 2: Hybrid TEE + ZK Proofs (12 months post-MVP)
+**Adding cryptographic verification**:
+- TEE nodes generate ZK proofs of correct execution
+- Smart contracts verify proofs on-chain
+- Users can trustlessly verify trade execution
+- **Speed**: <100ms (proof generation in parallel with execution)
+- **Benefits**:
+  - Cryptographic guarantees
+  - Auditable execution
+  - Reduced trust in hardware
+
+#### Phase 3: Full ZK-Proof System (18+ months post-MVP)
+**Completely trustless execution**:
+- Remove hardware dependency entirely
+- Anyone can run a prover node
+- All trade execution verified through ZK proofs
+- Smart contracts verify proofs before settlement
+- **Challenge**: Maintaining sub-second proof generation
+- **Solution**: Specialized proof systems for trading (Plonky3, etc.)
+
+**Why this progression?**
+1. TEE gives immediate decentralization with minimal speed impact
+2. ZK technology needs time to mature for HFT speeds
+3. Each phase maintains backward compatibility
+4. Users can choose their trust model
+
+### 3. Future Staking Expansion
+**Multi-Protocol Stake Aggregation** (Post-MVP):
+- **Support multiple DeFi protocols**: Not just HyperLiquid - add Ethereum staking, Lido, Rocket Pool, etc.
+- **Aggregate total stake**: Combine stake across protocols for higher trading throughput
+- **Higher stake = Higher limits**: More staked capital allows larger/more frequent trades
+- **Cross-protocol recognition**: One staking contract manages multiple protocol stakes
+- **Maintain capital efficiency**: Traders keep earning yields while using stake as collateral
+
+Implementation approach:
+- Add adapter contracts for each supported protocol
+- Calculate aggregate stake value in USD equivalent
+- Dynamic throughput limits based on total stake
+- Slashing proportional to trade size vs stake size
+
+### 4. Additional Post-MVP Features
 - Advanced rate limiting per user
-- Multi-validator staking support
+- Multi-validator staking support on HyperLiquid
 - Partial slashing based on severity
 - Automated recovery mechanisms
 - Decentralized guardian system

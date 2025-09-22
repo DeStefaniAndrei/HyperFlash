@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    // Output settings
+    "outDir": "./dist",                  // Where compiled JS goes
+    "declaration": true,                 // Generate .d.ts files for types
+    "declarationMap": true,             // Generate source maps for debugging
+
+    // Module settings
+    "module": "commonjs",                // Node.js compatible
+    "target": "es2020",                  // Modern JavaScript features
+    "lib": ["es2020"],                   // Available libraries
+
+    // Quality settings
+    "strict": true,                      // Enable all strict checks
+    "esModuleInterop": true,             // Better imports
+    "skipLibCheck": true,                // Skip checking node_modules
+    "forceConsistentCasingInFileNames": true,  // Prevent case errors
+
+    // Development helpers
+    "sourceMap": true,                   // For debugging
+    "resolveJsonModule": true            // Import JSON files
+  },
+  "include": ["src/**/*"],              // What files to compile
+  "exclude": ["node_modules", "dist", "examples"]  // What to ignore
+}
