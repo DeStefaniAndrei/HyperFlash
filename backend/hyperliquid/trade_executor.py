@@ -48,6 +48,10 @@ class TradeExecutor:
         else:
             base_url = constants.TESTNET_API_URL
 
+        # Initialize Info for market data WITH WebSocket disabled to prevent hanging
+        # CRITICAL: skip_ws=True prevents the SDK from hanging during initialization
+        self.info = Info(base_url=base_url, skip_ws=True)
+
         # Initialize Exchange with vault address
         # Master account signs, shared EOA executes
         self.exchange = Exchange(
@@ -55,9 +59,6 @@ class TradeExecutor:
             base_url=base_url,
             vault_address=self.shared_eoa_address  # Shared EOA executes
         )
-
-        # Initialize Info for market data
-        self.info = Info(base_url=base_url)
 
         print(f"[OK] Trade executor initialized")
         print(f"    Network: {network}")

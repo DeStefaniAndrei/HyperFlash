@@ -227,6 +227,44 @@ order_result = exchange.order(
 - Never attempt to bridge funds back - one-way flow only
 - Vault address parameter required for subaccount trading
 
+## CRITICAL SDK FIX - MUST REMEMBER
+**Python HyperLiquid SDK Hanging Solution**: Always use `skip_ws=True` when initializing Info client
+```python
+# CORRECT - Prevents hanging:
+self.info = Info(base_url=base_url, skip_ws=True)
+
+# WRONG - Will hang:
+self.info = Info(base_url=base_url)  # WebSocket connection causes hanging
+```
+
+## CURRENT DEPLOYMENT STATUS (As of Last Session)
+**Deployed Contracts on HyperLiquid Mainnet:**
+- Factory Contract: `0xE51F12Dbc2fC2BD855887f247FB3793dC564a9A6`
+- User Staking Contract: `0x9026127fEe40Db0497EC0AA4Fb499D863Df879DB` (0.05 HYPE staked, active)
+
+**Wallet Status:**
+- Main Wallet: `0x9F5ADC9EC328a249ebde3d46CB00c48C3Ba8e8Cf`
+  - Has 15 USDC on HyperCore (confirmed working)
+  - Has 0.17 HYPE on HyperEVM
+  - Registered and active on HyperCore mainnet
+
+**Backend Configuration:**
+- Running on port 3000
+- Using mainnet configuration
+- Python SDK fixed with skip_ws=True
+- Factory address configured in .env
+
+**Block Size Management Commands:**
+```bash
+# Switch to big blocks for deployment
+echo y | npx @layerzerolabs/hyperliquid-composer set-block --size big --network mainnet --private-key YOUR_KEY
+
+# Deploy contracts...
+
+# Switch back to small blocks for normal operation
+echo y | npx @layerzerolabs/hyperliquid-composer set-block --size small --network mainnet --private-key YOUR_KEY
+```
+
 ## CONFIRMED IMPLEMENTATION DECISIONS
 
 ### 1. Trading Authorization - API Wallets

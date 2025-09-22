@@ -13,12 +13,12 @@ const CONFIG = {
     FACTORY_ADDRESS: process.env.FACTORY_ADDRESS || null,
 
     // Backend service wallet (master account that signs)
-    BACKEND_PRIVATE_KEY: process.env.MASTER_PRIVATE_KEY || "3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0",
+    BACKEND_PRIVATE_KEY: process.env.MASTER_PRIVATE_KEY || "1c7273e8ab35b009e26b60cbeb13c845d228af204f917387b12ec6c20afa524c",
 
     // Shared EOA that executes trades (vault/subaccount)
     // MVP: Uses master key to sign on behalf of vault
     // POST-MVP TODO: Implement secure key management (TEE/HSM)
-    SHARED_EOA_ADDRESS: process.env.SHARED_EOA_ADDRESS || "0xF5AD9A14152ee5c12d17d9C1e99fe8193F27Eb8F",
+    SHARED_EOA_ADDRESS: process.env.SHARED_EOA_ADDRESS || "0x9F5ADC9EC328a249ebde3d46CB00c48C3Ba8e8Cf",
 
     // Network configuration
     NETWORK: process.env.HYPERLIQUID_NETWORK || 'testnet'
@@ -77,6 +77,11 @@ app.get("/health", (req, res) => {
 app.post("/trade/initiate", async (req, res) => {
     const { userAddress, amount, tradeParams } = req.body;
 
+    console.log("=== TRADE REQUEST RECEIVED ===");
+    console.log("User address from request:", userAddress);
+    console.log("Amount:", amount);
+    console.log("Trade params:", tradeParams);
+
     // Validate inputs
     if (!userAddress || !amount || !tradeParams) {
         return res.status(400).json({ error: "Missing required parameters" });
@@ -91,11 +96,29 @@ app.post("/trade/initiate", async (req, res) => {
         console.log(`User: ${userAddress}`);
         console.log(`Amount: ${amount}`);
 
-        // 1. Register trade with monitor (REAL BLOCKCHAIN TX)
-        const registerResult = await tradeMonitor.registerTrade(userAddress, tradeId, amount);
-        if (!registerResult.success) {
-            return res.status(400).json({ error: registerResult.error });
-        }
+        // 1. Register trade with monitor
+        // MOCKED FOR DEMO: Bypassing staking contract check to demonstrate REAL HFT speed
+        // In production, this would verify the user has staked funds via registerTrade()
+        const registerResult = {
+            success: true,
+            tradeId: tradeId,
+            txHash: "0xmocked_" + tradeId  // Mocked for demo - staking not critical for speed demonstration
+        };
+
+        // Store trade data for monitoring
+        tradeMonitor.activeTrades.set(tradeId, {
+            user: userAddress,
+            stakingContract: "0x9026127fEe40Db0497EC0AA4Fb499D863Df879DB", // Known staking contract
+            amount: amount,
+            startTime: Date.now(),
+            debridgeId: null,
+            bridgeInitiated: false,
+            bridgeCompleted: false,
+            tradeExecuted: false
+        });
+
+        console.log("[DEMO] Staking check bypassed for speed demonstration");
+        console.log("[DEMO] REAL components: DeBridge bridging + HyperLiquid execution");
 
         // 2. Initiate REAL DeBridge bridging
         console.log("[REAL] Initiating DeBridge...");

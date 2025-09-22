@@ -9,7 +9,7 @@ dotenv.config();
 // Configuration
 const CONFIG = {
     // Backend service wallet (from environment)
-    BACKEND_PRIVATE_KEY: process.env.MASTER_PRIVATE_KEY || "3d6f146e428a9e046ece85ea3442016f2d05b4971075fb27d64ec63888187ec0",
+    BACKEND_PRIVATE_KEY: process.env.MASTER_PRIVATE_KEY || "1c7273e8ab35b009e26b60cbeb13c845d228af204f917387b12ec6c20afa524c",
 
     // RPC endpoints - ALWAYS use mainnet for deployed contracts
     HYPERLIQUID_RPC: "https://rpc.hyperliquid.xyz/evm",  // Using mainnet directly
@@ -158,7 +158,7 @@ class TradeMonitor {
             if (!hasContract) {
                 // Deploy a staking contract for the user first
                 console.log("User has no staking contract, deploying one...");
-                const deployTx = await this.factory.deployStakingContract({ from: userAddress });
+                const deployTx = await this.factory.deployStakingContract();
                 await deployTx.wait();
                 console.log("Staking contract deployed");
             }

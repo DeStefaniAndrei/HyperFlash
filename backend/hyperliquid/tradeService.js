@@ -28,7 +28,7 @@ class HyperLiquidTradeService {
 
         try {
             // Test Python installation and HyperLiquid SDK
-            const testResult = await this.executePythonCommand('test_connection');
+            const testResult = await this.executePythonCommand({action: 'test_connection'});
 
             if (testResult.success) {
                 this.isInitialized = true;

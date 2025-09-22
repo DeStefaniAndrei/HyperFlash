@@ -13,7 +13,10 @@
       "WebFetch(domain:hyperliquid.gitbook.io)",
       "Bash(npx @layerzerolabs/hyperliquid-composer set-block:*)",
       "Bash(awk:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []
