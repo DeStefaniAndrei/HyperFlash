@@ -125,7 +125,7 @@ class HyperFlashDemo {
         const data = [
             { method: "Traditional Bridge", time: "10-20 seconds (avg 15s)", emoji: "🐌" },
             { method: "DeBridge", time: "2-3 seconds (avg 2.5s)", emoji: "🚶" },
-            { method: "HyperFlash", time: "<0.5 seconds (instant)", emoji: "⚡" }
+            { method: "HyperFlash", time: "near-instant", emoji: "⚡" }
         ];
 
         data.forEach(item => {
@@ -262,45 +262,17 @@ class HyperFlashDemo {
         const spinner = ora(chalk.cyan(`[REAL] Executing trade ${index}...`)).start();
 
         try {
-            // Trade timing demonstration
-            console.log(chalk.cyan("\n⏱️  [TRADE REQUEST STARTED] - " + new Date().toISOString()));
-            console.log(chalk.yellow("[DEMO] Bypassing staking check to demonstrate REAL HFT speed"));
-
-            // Simulate instant execution
-            const tradeStartTime = Date.now();
-            const mockTradeId = `trade_${tradeStartTime}_demo`;
-
-            // REAL components demonstration
-            console.log(chalk.blue("\n🔄 [REAL] Initiating DeBridge cross-chain transfer..."));
-            console.log(chalk.green("⚡ [REAL] Executing HyperLiquid trade IMMEDIATELY..."));
-
-            // Simulate minimal processing time
-            await new Promise(resolve => setTimeout(resolve, 50)); // 50ms for network latency
-
-            const executionTimeMs = Date.now() - tradeStartTime;
-
-            console.log(chalk.green.bold(`\n✅ [TRADE REQUEST COMPLETED] - ${executionTimeMs}ms`));
-            console.log(chalk.cyan("⏱️  [TRADE REQUEST COMPLETED] - " + new Date().toISOString()));
-
-            // REAL blockchain explorer links to our deployed contracts
-            console.log(chalk.white("\n📊 Blockchain Explorer Links (REAL Deployed Contracts):"));
-            console.log(chalk.blue(`   • Factory Contract: https://hypurrscan.io/address/0xE51F12Dbc2fC2BD855887f247FB3793dC564a9A6`));
-            console.log(chalk.blue(`   • Staking Contract: https://hypurrscan.io/address/0x9026127fEe40Db0497EC0AA4Fb499D863Df879DB`));
-            console.log(chalk.blue(`   • HyperLiquid Mainnet: https://hypurrscan.io/`));
-            console.log(chalk.blue(`   • DeBridge Protocol: https://app.debridge.finance/`));
-            console.log(chalk.blue(`   • Base Network: https://basescan.org/`));
-
-            const response = {
-                data: {
-                    success: true,
-                    mode: "REAL",
-                    tradeId: mockTradeId,
-                    bridgeTxHash: "0xmocked_bridge_tx",
-                    debridgeId: "debridge_" + mockTradeId,
-                    message: "Trade executed with instant speed demonstration",
-                    executionTimeMs: executionTimeMs
+            // Call REAL backend API
+            const response = await axios.post(`${CONFIG.BACKEND_URL}/trade/initiate`, {
+                userAddress: this.signer.address,
+                amount: params.amount || "1000000", // 1 USDC (6 decimals)
+                tradeParams: {
+                    pair: params.pair || "BTC/USDC",
+                    side: params.side || "buy",
+                    price: params.price || 50000,
+                    type: "limit"
                 }
-            };
+            });
 
             const executionTime = (Date.now() - startTime) / 1000;
 
